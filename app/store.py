@@ -5,6 +5,8 @@ def connection():
     path=Path(os.environ.get('APP_DB','data/runs.sqlite3'));path.parent.mkdir(parents=True,exist_ok=True)
     db=sqlite3.connect(path);db.row_factory=sqlite3.Row
     db.execute('CREATE TABLE IF NOT EXISTS runs(id TEXT PRIMARY KEY, payload TEXT NOT NULL, revision INTEGER NOT NULL DEFAULT 1, decision TEXT NOT NULL DEFAULT "待复核")')
+    db.execute('CREATE TABLE IF NOT EXISTS fx_batches(id TEXT PRIMARY KEY, action_uid TEXT NOT NULL, payload TEXT NOT NULL, state TEXT NOT NULL, created_at TEXT NOT NULL)')
+    db.execute('CREATE TABLE IF NOT EXISTS fx_payments(batch_id TEXT NOT NULL, client TEXT NOT NULL, payload TEXT NOT NULL, PRIMARY KEY(batch_id, client))')
     return db
 def save(result):
     with connection() as db:

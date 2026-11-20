@@ -1,0 +1,17 @@
+{
+  "action": "HK00700-2026-INTERIM",
+  "security": "00700",
+  "ex_date": "2026-11-18",
+  "dividend_hkd": "0.135",
+  "locked_rate": "0.9123",
+  "holdings": [
+    {"client": "C10001", "shares": "102"},
+    {"client": "C10002", "shares": "103"},
+    {"client": "C10003", "shares": "104"},
+    {"client": "C10004", "shares": "105"},
+    {"client": "C10005", "shares": "106"},
+    {"client": "C10006", "shares": "107"},
+    {"client": "C10007", "shares": "108"},
+    {"client": "C10008", "shares": "109"}
+  ]
+}

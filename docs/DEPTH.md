@@ -15,6 +15,7 @@
 | M5 持仓重算 | 运行持仓重算并复核证据 | `POST /api/m5`；`/work/5` | `app/modules/m5_holdings/rules.py` | `tests/test_m5.py` |
 | M6 现金对账 | 运行现金对账并复核证据 | `POST /api/m6`；`/work/6` | `app/modules/m6_cash/rules.py` | `tests/test_m6.py` |
 | M7 修订回放 | 运行修订回放并复核证据 | `POST /api/m7`；`/work/7` | `app/modules/m7_revisions/rules.py` | `tests/test_m7.py` |
+| M8 汇兑支付 | 港股分红港币宣告、人民币到账的批次生命周期 | `POST /api/fx/batches`；`/fx` | `app/modules/m8_fxsettle/rules.py` | `tests/test_fx.py` |
 
 ## 陷阱登记
 
@@ -28,10 +29,15 @@
 | TRAP-14 | 行动定义冲突 | 静默覆盖或误计 | 显式裁决并保留证据 | `app/modules/m2_mapping/rules.py` | `tests/test_m2.py::test_conflicting_action_removed` |
 | TRAP-24 | 现金尾差 | 静默覆盖或误计 | 显式裁决并保留证据 | `app/modules/m5_holdings/rules.py` | `tests/test_m5.py::test_largest_remainder_conservation` |
 | TRAP-25 | 行动版本选择 | 静默覆盖或误计 | 显式裁决并保留证据 | `app/modules/m2_mapping/rules.py` | `tests/test_m2.py::test_latest_action_chosen` |
+| TRAP-26 | 同一行动重复折算 | 重跑后部分客户多一笔支付 | 行动标识为幂等键，(批次,客户)主键兜底，不同宣告409 | `app/modules/m8_fxsettle/service.py` | `tests/test_fx.py::test_rerun_same_declaration_reuses_batch` |
+| TRAP-27 | 汇兑两处尾差 | 确认单与银行结汇对不平整批 | 实付按整批总额到分最大余额法分配，每户差异=实付−锁定可勾稽 | `app/modules/m8_fxsettle/rules.py` | `tests/test_fx.py::test_tail_difference_allocated_by_largest_remainder` |
+| TRAP-28 | 汇率未确认误记已付 | 未结汇就写成已付 | 状态机：仅已对账可发布，发布后支付才为已付 | `app/modules/m8_fxsettle/service.py` | `tests/test_fx.py::test_publish_blocked_before_rate_confirmed` |
 
 ## 对账规则
 
 输入记录 = 采信记录 + 隔离记录 + 相同行重复。重复表头与空行单独记数。业务合计按阶段中的守恒或差值列复核。运行清单有原文SHA256、规则版本与耗时；相同规则版本下同文重复提交复用批次。
+
+汇兑批次勾稽：每户 锁定_CNY + 差异_CNY = 实付_CNY；合计同式成立。Σ实付 ≡ round(Σ应得_HKD × 采用汇率, 分)，与银行对整批港币一次结汇金额一致；银行回款 − Σ实付 = 对账差异，为零才允许发布。批次沿革记录创建、汇率确认/重订、回款对账与发布，可复核。
 
 ## 已知不覆盖
 
